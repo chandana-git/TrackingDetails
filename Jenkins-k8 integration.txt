@@ -66,9 +66,8 @@ ip-10-0-0-141.us-east-2.compute.internal   NotReady   <none>   117s    v1.18.3
 
 ((((The output of the command above will show both the nodes in NOTREADY state. That is because Kubernetes needs an “overlay network” so that pod-to-pod communication can happen properly. This overlay network is created by third-party CNI plugins. We are going to use Calico to create that overlay network.))))
 
- kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
-configmap/calico-config created
-
+ sudo kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
+configmap/calico-config 
 #refer https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/, Under Calico (Installing a Pod network add-on)
 
 NOW ITS IN READY STATE
@@ -105,6 +104,10 @@ In jenkins instance,install kubectl
 > EOF
 [root@ip-10-0-3-33 centos]# yum install -y kubectl
 
+Copy from master
+ls -la
+cat $HOME/.kube/config==>(copy and paste)
+
 #copy config file content here
 mkdir .kube
 ls -la
@@ -117,6 +120,10 @@ now u can use kubectl cmds like kubectl get nodes/pods
 NAME                                       STATUS   ROLES    AGE   VERSION
 ip-10-0-0-114.us-east-2.compute.internal   Ready    master   57m   v1.18.3
 ip-10-0-0-141.us-east-2.compute.internal   Ready    <none>   53m   v1.18.3
+
+Copy from master
+ls -la
+cat $HOME/.kube/config==>(copy and paste)
 
 [centos@ip-10-0-3-33 ~]$ sudo su
 [root@ip-10-0-3-33 centos]# cd .kube
@@ -135,14 +142,16 @@ Credentials>Add Credentials>
 
 Kind:Kubernetes configuration
 
+Copy from master
+ls -la
+cat $HOME/.kube/config==>(copy and paste)
+
 id: kube_config
 desc: kube_config
 
 Kubeconfig->Enter directly<Paste the config content>
 
-Copy from master
-ls -la
-cat $HOME/.kube/config==>(copy and paste)
+
 
 use the below stage in pipeline 
 stage("Deploy To Kuberates Cluster"){
