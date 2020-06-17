@@ -1,0 +1,60 @@
+
+Jenkins Terraform integration
+----------------------------------------------
+
+installing docker and terraform
+
+On Swarm Manager and Worker node:-
+sudo yum update -y
+
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo yum install -y docker-ce
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker cloud_user
+
+docker --version
+
+ON MANAGER NODE ONLY
+docker swarm init --advertise-addr [Private_IP_Address]
+
+Install Terraform:-
+Install Terraform 0.11.13 on the Swarm manager:
+sudo curl -O https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
+sudo yum install -y unzip
+sudo unzip terraform_0.11.13_linux_amd64.zip -d /usr/local/bin/
+
+Test the Terraform installation:
+terraform version
+
+ON WORKER NODE
+docker swarm join --token [TOKEN] [Private_IP_Address_Of_Manager]:2377
+------------------------------------------------------------------------
+After installing, set the path in .bash_profile file as
+TF_PATH=/usr/local/bin/terraform 
+PATH=$PATH:$TF_PATH:$HOME/bin
+
+Restart jenkins after setting the path
+sudo systemctl restart jenkins
+Later install the plugin of terraform and set the path in Global tool configuration
+Name: TF_PATH
+Install Directory: /usr/local/bin/terraform 
+
+
+Later in pipeline use the following :
+
+stage('Terraform deploy of docker'){
+    
+    def tfHome = tool name: 'TF_PATH', type: 'terraform'
+     sh "${tfHome}/terraform --version"
+      sh "${tfHome}/terraform init"
+     sh "${tfHome}/terraform plan"
+     sh "${tfHome}/terraform apply -auto-approve"
+
+    //sh 'sudo /usr/local/bin/terraform --version'
+    //sh 'sudo /usr/local/bin/terraform init'
+    //sh 'sudo /usr/local/bin/terraform plan'
+    //sh 'sudo /usr/local/bin/terraform apply -auto-approve' //terraform
+ 
+}
