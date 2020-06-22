@@ -38,6 +38,26 @@ aws-iam-authenticator version
 [centos@ip-10-0-1-83 ~]$ aws-iam-authenticator version
 {"Version":"v0.5.0","Commit":"1cfe2a90f68381eacd7b6dcfa2bf689e76eb8b4b"}
 
+Install kubectl:
+------------------
+	curl -o kubectl https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/linux/amd64/kubectl
+	chmod +x ./kubectl
+	mkdir -p /usr/bin
+	cp ./kubectl /usr/bin/kubectl
+	export PATH=/usr/bin:$PATH
+	echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
+	source ~/.bashrc
+	kubectl version --short --client
+
+Install aws-iam-authenticator:
+------------------------------------------------------------------------
+	curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/linux/amd64/aws-iam-authenticator
+	chmod +x ./aws-iam-authenticator
+	cp ./aws-iam-authenticator /usr/bin/aws-iam-authenticator
+	export PATH=/usr/bin:$PATH
+	echo 'export PATH=/usr/bin:$PATH' >> ~/.bashrc
+	source ~/.bashrc
+	aws-iam-authenticator --help
 
 install kubectl
 sudo su   //root user
