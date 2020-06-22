@@ -1,0 +1,102 @@
+
+
+Download terraform
+yum -y update
+ wget https://releases.hashicorp.com/terraform/0.12.26/terraform_0.12.26_linux_amd64.zip
+unzip terraform_0.12.26_linux_amd64.zip
+
+Set the path for terraform
+terraform version
+[centos@ip-10-0-1-83 ~]$ echo $"export PATH=\$PATH:$(pwd)" >> ~/.bash_profile
+[centos@ip-10-0-1-83 ~]$ source ~/.bash_profile
+--------------------------------------
+Provisioning EKS with terraform
+you will need:
+an AWS account,
+a configured AWS CLI
+AWS IAM Authenticator
+kubectl
+wget (required for the eks module)
+
+===================================================================
+a configured AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install   sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+aws --version
+
+[centos@ip-10-0-1-83 ~]$ aws --version
+aws-cli/2.0.24 Python/3.7.3 Linux/3.10.0-1127.10.1.el7.x86_64 botocore/2.0.0dev28
+
+
+AWS IAM Authenticator
+curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.8/2020-04-16/bin/linux/amd64/aws-iam-authenticator
+chmod +x ./aws-iam-authenticator
+sudo mv aws-iam-authenticator /usr/local/bin
+aws-iam-authenticator version
+
+[centos@ip-10-0-1-83 ~]$ aws-iam-authenticator version
+{"Version":"v0.5.0","Commit":"1cfe2a90f68381eacd7b6dcfa2bf689e76eb8b4b"}
+
+
+install kubectl
+sudo su   //root user
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+yum install -y kubectl
+
+sudo yum install git
+===================================================
+git clone https://github.com/terraform-providers/terraform-provider-aws.git
+
+terraform-provider-aws/examples/eks-getting-started/
+https://github.com/terraform-providers/terraform-provider-aws/tree/v2.51.0/examples/eks-getting-started
+===================================================
+https://github.com/chandana-git/terraform-eks-getting-started.git
+
+[centos@ip-10-0-1-83 ~]$ aws configure
+AWS Access Key ID : 
+AWS Secret Access Key : 
+Default region name [None]: us-west-2
+Default output format [None]:
+mkdir .kube
+ $cd terraform-eks-getting-started
+terraform init
+terraform plan
+terraform  apply --auto-approve
+terraform  state list  //list of resources
+terraform output kubeconfig > ~/.kube/config
+kubectl cluster-info   //tells the master is running
+
+kubectl get nodes
+terraform output config_map_aws_auth > configmap.yml
+kubectl apply -f configmap.yml
+ kubectl create -f deploy.yml
+ kubectl create -f svc.yml
+kubectl get service
+ curl http://afd7241ca9d0f463e8fb48e203c794d7-888912849.us-west-2.elb.amazonaws.com:8080/greeting
+Hello World
+
+terraform destroy -auto-approve
+-----------------------------------------------------------------------
+[centos@ip-10-0-1-83 terraform-eks-getting-started]$ terraform output config_map_aws_auth > configmap.yml
+[centos@ip-10-0-1-83 terraform-eks-getting-started]$ kubectl apply -f configmap.yml
+Warning: kubectl apply should be used on resource created by either kubectl create --save-config or kubectl apply
+configmap/aws-auth configured
+[centos@ip-10-0-1-83 terraform-eks-getting-started]$ kubectl create -f svc.yml
+service/webapp-svc created
+[centos@ip-10-0-1-83 terraform-eks-getting-started]$ kubectl get service
+NAME            TYPE           CLUSTER-IP       EXTERNAL-IP                                                              PORT(S)          AGE
+kubernetes      ClusterIP      172.20.0.1       <none>                                                                   443/TCP          48m
+webapp-deploy   LoadBalancer   172.20.227.202   afd7241ca9d0f463e8fb48e203c794d7-888912849.us-west-2.elb.amazonaws.com   8080:30440/TCP   3m57s
+webapp-svc      NodePort       172.20.166.53    <none>  
+curl http://afd7241ca9d0f463e8fb48e203c794d7-888912849.us-west-2.elb.amazonaws.com:8080/greeting
+Hello World
+
