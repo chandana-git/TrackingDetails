@@ -108,3 +108,10 @@ sudo usermod -a -G docker jenkins
 sudo chkconfig jenkins on
 sudo service docker start
 sudo service jenkins start
+
+echo "Install Docker engine"
+yum update -y
+yum install docker -y
+#sudo usermod -a -G docker jenkins
+#sudo service docker start
+sudo chkconfig docker on
