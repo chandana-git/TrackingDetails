@@ -1,0 +1,114 @@
+kubernetes monitoring with prometheus and grafana
+
+https://github.com/DeekshithSN/kubernetes
+
+Make sure the k8 cluster is up and running
+
+
+Create a new namespace
+kubectl create ns monitoring(Create all the pods and deployments related to monitoring here)
+
+->Create a cluster role (which resources this policy can be accessed within this cluster)
+ClusterroleBinding is applying the role on a user.
+[root@ip-10-0-0-104 monitoring]# cd kubernetes-prometheus
+[root@ip-10-0-0-104 kubernetes-prometheus]# ls
+clusterRole.yaml  prometheus-deployment.yaml  prometheus-service.yaml
+config-map.yaml   prometheus-ingress.yaml     README.md
+[root@ip-10-0-0-104 kubernetes-prometheus]# kubectl create -f clusterRole.yaml
+clusterrole.rbac.authorization.k8s.io/prometheus created
+clusterrolebinding.rbac.authorization.k8s.io/prometheus created
+
+ ->create config map- copying configuration from local onto the current repo
+[root@ip-10-0-0-104 kubernetes-prometheus]# kubectl create -f config-map.yaml
+configmap/prometheus-server-conf created
+[root@ip-10-0-0-104 kubernetes-prometheus]# kubectl get cm --namespace=monitoring
+NAME                     DATA   AGE
+prometheus-server-conf   2      5m34s
+
+->create prometheus deployment and service type
+[root@ip-10-0-0-104 kubernetes-prometheus]# kubectl create -f prometheus-deployment.yaml
+deployment.apps/prometheus-deployment created
+[root@ip-10-0-0-104 kubernetes-prometheus]# kubectl create -f prometheus-service.yaml
+service/prometheus-service created
+
+NodePort can be accessed on 30000 port
+ So acccess the prometheus using ip:30000
+Prometheus-> Status ->Targets
+
+
+GRAFANA: its a visualization tool
+create config file,deployment and service
+
+[root@ip-10-0-0-104 monitoring]# ls
+kubernetes-elk  kubernetes-grafana  kubernetes-prometheus
+[root@ip-10-0-0-104 monitoring]# cd kubernetes-grafana
+
+[root@ip-10-0-0-104 kubernetes-grafana]# kubectl create -f .  (creates all the files in this directory)
+deployment.apps/grafana created
+configmap/grafana-datasources created
+service/grafana created
+ access using ip:32000 since nodeport is exposed outside the cluster on 32000
+id:admin
+password: admin
+
+create a dashboard
+
+Create -> Import ->8588 and load
+
+Select  prometheus datasource and import
+
+
+
+[root@ip-10-0-0-104 kubernetes-grafana]# kubectl get all --namespace=monitoring
+NAME                                         READY   STATUS    RESTARTS   AGE
+pod/grafana-86b84774bb-2pnkp                 1/1     Running   0          61s
+pod/prometheus-deployment-54686956bd-9jr9x   1/1     Running   0          10m
+
+NAME                         TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+service/grafana              NodePort   10.102.88.164    <none>        3000:32000/TCP   61s
+service/prometheus-service   NodePort   10.101.170.232   <none>        8080:30000/TCP   8m32s
+
+NAME                                    READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/grafana                 1/1     1            1           61s
+deployment.apps/prometheus-deployment   1/1     1            1           10m
+
+NAME                                               DESIRED   CURRENT   READY   AGE
+replicaset.apps/grafana-86b84774bb                 1         1         1       61s
+replicaset.apps/prometheus-deployment-54686956bd   1         1         1       10m
+
+
+You can use the metrics as->
+kubelet_running_container_count
+kubelet_running_pod_count
+kubelet_containers_per_pod_count_count
+
+kubelet_running_pod_count
+
+Element	Value
+kubelet_running_pod_count{beta_kubernetes_io_arch="amd64",beta_kubernetes_io_os="linux",instance="ip-10-0-0-104.us-east-2.compute.internal",job="kubernetes-nodes",kubernetes_io_arch="amd64",kubernetes_io_hostname="ip-10-0-0-104.us-east-2.compute.internal",kubernetes_io_os="linux"}	7
+kubelet_running_pod_count{beta_kubernetes_io_arch="amd64",beta_kubernetes_io_os="linux",instance="ip-10-0-0-178.us-east-2.compute.internal",job="kubernetes-nodes",kubernetes_io_arch="amd64",kubernetes_io_hostname="ip-10-0-0-178.us-east-2.compute.internal",kubernetes_io_os="linux"}	6
+
+[root@ip-10-0-0-104 kubernetes-grafana]# kubectl get pods --all-namespaces
+NAMESPACE     NAME                                                               READY   STATUS    RESTARTS   AGE
+kube-system   calico-kube-controllers-76d4774d89-c5r7b                           1/1     Running   0          75m
+kube-system   calico-node-4kjl6                                                  1/1     Running   0          75m
+kube-system   calico-node-7h27v                                                  1/1     Running   0          75m
+kube-system   coredns-66bff467f8-q4pqx                                           1/1     Running   0          77m
+kube-system   coredns-66bff467f8-rfzsr                                           1/1     Running   0          77m
+kube-system   etcd-ip-10-0-0-104.us-east-2.compute.internal                      1/1     Running   0          77m
+kube-system   kube-apiserver-ip-10-0-0-104.us-east-2.compute.internal            1/1     Running   0          77m
+kube-system   kube-controller-manager-ip-10-0-0-104.us-east-2.compute.internal   1/1     Running   0          77m
+kube-system   kube-proxy-6n4g6                                                   1/1     Running   0          75m
+kube-system   kube-proxy-jxl4n                                                   1/1     Running   0          77m
+kube-system   kube-scheduler-ip-10-0-0-104.us-east-2.compute.internal            1/1     Running   0          77m
+monitoring    grafana-86b84774bb-2pnkp                                           1/1     Running   0          34m
+monitoring    prometheus-deployment-54686956bd-9jr9x                             1/1     Running   0          43m
+
+
+Create a new dashboard
+ Create->Dashboard->Add new panel
+
+Query ->Prometheus
+
+Metrics->kubelet_running_pod_count
+
