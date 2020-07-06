@@ -112,3 +112,4 @@ Query ->Prometheus
 
 Metrics->kubelet_running_pod_count
 
+kubectl delete all --all -n {namespace} ///To delete all the resources
